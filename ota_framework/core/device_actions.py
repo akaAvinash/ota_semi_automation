@@ -327,8 +327,8 @@ class DeviceActions:
                 if not self.skip_oobe():
                     return False
                 self.reboot_device()
-                logger.info("Rebooting device. Waiting for 30 seconds for device to come online...")
-                time.sleep(30)  
+                logger.info("Rebooting device. Waiting for 60 seconds for device to come online...")
+                time.sleep(60)  
                 if self.check_device_online():
                     logger.info("Device rebooted and online.")
                     return True
@@ -348,19 +348,25 @@ class DeviceActions:
         Get the device profile from the Profiles class.
 
         Returns:
-        - str: Device profile (TV or MULTIMODAL).
+        - str: Device profile (TV or specific MULTIMODAL device name).
         """
         try:
             device_name = self.get_device_name()
-            if device_name == "callie":
+            
+            if device_name == Profiles.TV:
                 return Profiles.TV
-            elif device_name in Profiles.MULTIMODAL:
-                return Profiles.MULTIMODAL
-            else:
-                raise Exception("Unknown device profile.")
+            
+            # Check if the device_name is in MULTIMODAL and return it
+            if device_name in Profiles.MULTIMODAL:
+                return device_name
+            
+            # If device_name is not found in the known profiles
+            raise Exception("Unknown device profile.")
+        
         except Exception as e:
             logger.error(f"Error getting device profile: {e}")
             raise
+
 
     @logger.log_decorator(level='info')
     def push_debug_service_file(self):
@@ -431,11 +437,11 @@ if __name__ == "__main__":
 #         device_actions.push_and_install_app('settings_app')
 #         device_actions.push_and_install_app('carousel_app')
 #         device_actions.get_device_name()
-        #   device_actions.get_device_name()
-        #   device_actions.get_device_profile()
-        #   device_actions.check_and_complete_oobe_based_on_profile()
+          device_actions.get_device_name()
+          device_actions.get_device_profile()
+          device_actions.check_and_complete_oobe_based_on_profile()
         # device_actions.verify_and_get_boot_utility_slots()
-        device_actions.push_debug_service_file()
+        # device_actions.push_debug_service_file()
           
     except Exception as e:
         print(f"Error: {e}")

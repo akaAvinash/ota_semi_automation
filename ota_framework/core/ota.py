@@ -9,12 +9,12 @@ from ota_framework.core.shell import Shell
 logger = CustomLogger('OTALogger')
 
 class OTA:
-    def __init__(self, delay=5, test_case_name='default'):
+    def __init__(self, delay=5, test_case_name=None):
         self.delay = delay
-        self.test_case_name = test_case_name
+        self.test_case_name = test_case_name if test_case_name is not None else 'default'
         self.log_folder = 'logs'
-        self.log_file = os.path.join(self.log_folder, f'{test_case_name}_ota_logs.txt')  # File to store OTA logs
-        self.log_command = OTACommands.OTA_LOG_COMMAND  # Assuming this is the command for log collection
+        self.log_file = os.path.join(self.log_folder, f'{self.test_case_name}_ota_logs.txt')
+        self.log_command = OTACommands.OTA_LOG_COMMAND  
         
         # Retrieve DSN from environment variables
         self.dsn = os.getenv('DEVICE_SERIAL_NUMBER')
@@ -28,6 +28,7 @@ class OTA:
             logger.error("No DEVICE_SERIAL_NUMBER found in environment variables.")
             raise EnvironmentError("DEVICE_SERIAL_NUMBER environment variable not set.")
 
+
     def start_log_collection(self):
         """
         Start collecting logs in a separate thread and write to a log file.
@@ -37,7 +38,7 @@ class OTA:
         def log_collection():
             # Execute the log collection command and redirect output to the log file
             process = Shell.execute_command(self.log_command, redirect_output=True, output_file=self.log_file)
-            process.wait()  # Wait for the process to complete
+            process.wait()
 
         # Start the log collection thread
         log_thread = threading.Thread(target=log_collection)
@@ -79,13 +80,21 @@ class OTA:
             
             time.sleep(self.delay)
         
+        # Re-execute the FORCE_UPDATE_OTA command after all other commands are executed
+        force_update_result = Shell.execute_command(OTACommands.FORCE_UPDATE_OTA.format(dsn=self.dsn))
+        results.append(force_update_result)
+        
+        if force_update_result['success']:
+            logger.info(f"Re-execution of FORCE_UPDATE_OTA succeeded.")
+        else:
+            logger.error(f"Re-execution of FORCE_UPDATE_OTA failed - Error: {force_update_result.get('error', 'No error message provided')}")
+        
         # Wait for the OTA process to complete and install
         logger.info("Waiting for 10 minutes for the OTA process to complete and install.")
-        time.sleep(600)  # Wait for 10 minutes (600 seconds)
+        time.sleep(600) 
 
         # Wait for the log collection thread to finish
-        log_thread.join(timeout=5)  # Adjust the timeout as needed
-
+        log_thread.join(timeout=5)
         return results
 
 # Example usage

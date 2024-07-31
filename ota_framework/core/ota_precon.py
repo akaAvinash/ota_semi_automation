@@ -54,7 +54,7 @@ class Precon:
 
     def flag(self):
         self.flags.set_flag_0()
-        time.sleep(30)
+        time.sleep(60)
         logger.info("Flag set to 0")
 
     def flag_440(self):

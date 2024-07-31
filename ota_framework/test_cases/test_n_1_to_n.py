@@ -1,8 +1,9 @@
 import os
 import time
 import pytest
+from ota_framework.core.ota import OTA
 from ota_framework.core.custom_logger import CustomLogger
-from ota_framework.core.test_config import TestConfig 
+from ota_framework.core.test_config import TestConfig
 
 # Initialize the logger
 logger = CustomLogger('n_1_to_n_ota', log_file_name='test_n_1_to_n.log')
@@ -20,9 +21,14 @@ def test_n_1_to_n_ota():
         
         build_name = "n_1_to_n"
         
+        # Create OTA instance with test_case_name
+        ota = OTA(delay=5, test_case_name='test_n_1_to_n')
+        
         # Flash build
         logger.info("Starting build flash.")
         flash.flash_build(build_name)
+        logger.info("Waiting for device to be ready.")
+        time.sleep(30)
         
         # Perform device setup prior to OTA
         setup.perform_setup()

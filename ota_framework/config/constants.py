@@ -60,4 +60,4 @@ class OTACommands:
     
 class Profiles:
     TV = "callie"
-    MULTIMODAL = ("hypnos","galileo","baklava")
+    MULTIMODAL = {"hypnos", "galileo", "baklava"}
