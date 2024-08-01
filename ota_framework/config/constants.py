@@ -2,12 +2,12 @@ class WiFiConstants:
     # SSID = "Guest"
     # PASSWORD = "BrokenWires@@2019"
     
-    SSID = "ACT103699381413"
-    PASSWORD = "23081207"
+    SSID = ""
+    PASSWORD = ""
 
 class RegistrationConstants:
-    USERNAME = "acs-qa+test2@amazon.com"
-    PASSWORD = "Test1234"
+    USERNAME = ""
+    PASSWORD = ""
 
 class WiFiCommands:
     SCAN = "adb shell ace mw wifi scan"
