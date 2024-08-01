@@ -4,7 +4,7 @@ import re
 import configparser
 from ota_framework.core.custom_logger import CustomLogger
 from ota_framework.core.flags import Flags
-from ota_framework.config.constants import SystemCommands, DeviceCommands, OOBECommands, Profiles
+from ota_framework.config.constants import SystemCommands, DeviceCommands, OOBECommands, Profiles, AppCommands
 from ota_framework.core.shell import Shell
 
 logger = CustomLogger('DeviceLog')
@@ -279,9 +279,20 @@ class DeviceActions:
                 logger.info(f"App {app_name} installed successfully.")
             else:
                 logger.error(f"Failed to install {app_name} on device: {result['error']}")
+                return
+
+            # Execute the LIST_APPS_COMMAND to verify installation
+            list_apps_command = AppCommands.LIST_APPS_COMMAND
+            list_result = self.shell.execute_command(list_apps_command)
+            if list_result['success']:
+                logger.info(f"Installed apps: {list_result['output']}")
+            else:
+                logger.error(f"Failed to list installed apps: {list_result['error']}")
+
         except Exception as e:
             logger.error(f"Error pushing or installing app {app_name}: {e}")
             raise
+
         
     @logger.log_decorator(level='info')
     def get_device_name(self):
@@ -434,12 +445,12 @@ if __name__ == "__main__":
 #         device_actions.complete_oobe()
 
 #         # Example to push and install an app
-#         device_actions.push_and_install_app('settings_app')
+        device_actions.push_and_install_app('settings_app')
 #         device_actions.push_and_install_app('carousel_app')
 #         device_actions.get_device_name()
-          device_actions.get_device_name()
-          device_actions.get_device_profile()
-          device_actions.check_and_complete_oobe_based_on_profile()
+        #   device_actions.get_device_name()
+        #   device_actions.get_device_profile()
+        #   device_actions.check_and_complete_oobe_based_on_profile()
         # device_actions.verify_and_get_boot_utility_slots()
         # device_actions.push_debug_service_file()
           

@@ -13,12 +13,11 @@ logger = CustomLogger('OTA_precondition')
 
 class Precon:
 
-    def __init__(self):
+    def __init__(self, logs_dir):
         self.wifi = WiFi()
         self.register = Registration()
         self.flags = Flags()
         # Initialize DeviceActions with logs_dir
-        logs_dir = '/home/ANT.AMAZON.COM/avinaks/Downloads/Playground/ota_framework/logs'
         if not os.path.exists(logs_dir):
             os.makedirs(logs_dir)
         

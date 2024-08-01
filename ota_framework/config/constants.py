@@ -1,9 +1,9 @@
 class WiFiConstants:
-    # SSID = "Guest"
-    # PASSWORD = "BrokenWires@@2019"
+    SSID = "Guest"
+    PASSWORD = "BrokenWires@@2019"
     
-    SSID = "ACT103699381413"
-    PASSWORD = "23081207"
+    # SSID = "ACT103699381413"
+    # PASSWORD = "23081207"
 
 class RegistrationConstants:
     USERNAME = "acs-qa+test2@amazon.com"
@@ -43,7 +43,7 @@ class DeviceCommands:
 class AppCommands:
     PUSH_COMMAND = "adb push {local_path} {device_path}"
     INSTALL_COMMAND = "adb shell vpm install {device_path}"
-    LIST_APPS_COMMAND = "adb shell vpm list apps"
+    LIST_APPS_COMMAND = "adb shell vpm list apps | grep systemtest"
     LAUNCH_COMMAND_PATTERN = "adb shell vlcm launch-app orpheus://com.amazon.systemtest.{app_name}.main"
 
 class OOBECommands:

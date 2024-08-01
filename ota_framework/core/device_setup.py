@@ -8,7 +8,7 @@ logger = CustomLogger('DeviceSetupLogger')
 
 class DeviceSetup:
     def __init__(self, precon,logs_dir):
-        self.precon = Precon()
+        self.precon = Precon(logs_dir)
         self.logs_dir = logs_dir
         self.device = DeviceActions(logs_dir=self.logs_dir)
         self.initial_version = None
