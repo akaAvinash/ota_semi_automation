@@ -1,0 +1,31 @@
+2024-08-01 23:19:58,474 - DeviceLog - INFO - Calling enable_alexa
+2024-08-01 23:19:58,513 - DeviceLog - INFO - Enable Alexa command output: 'com.amazon.devconf/system/oobe/oobe-complete' successfully set to 'true'
+
+2024-08-01 23:19:58,514 - DeviceLog - INFO - Alexa enabled successfully.
+2024-08-01 23:19:58,841 - DeviceLog - INFO - Reboot command output: 
+2024-08-01 23:19:58,841 - DeviceLog - INFO - Device rebooted successfully.
+2024-08-01 23:19:58,841 - DeviceLog - INFO - enable_alexa returned True
+2024-08-01 23:20:27,395 - DeviceLog - INFO - Calling enable_alexa
+2024-08-01 23:20:27,459 - DeviceLog - INFO - Enable Alexa command output: 'com.amazon.devconf/system/oobe/oobe-complete' successfully set to 'true'
+
+2024-08-01 23:20:27,460 - DeviceLog - INFO - Alexa enabled successfully.
+2024-08-01 23:20:27,631 - DeviceLog - INFO - Reboot command output: 
+2024-08-01 23:20:27,632 - DeviceLog - INFO - Device rebooted successfully.
+2024-08-01 23:20:27,632 - DeviceLog - INFO - enable_alexa returned True
+2024-08-01 23:22:08,360 - DeviceLog - INFO - Calling enable_alexa
+2024-08-01 23:22:08,409 - DeviceLog - INFO - Enable Alexa command output: 'com.amazon.devconf/system/oobe/oobe-complete' successfully set to 'true'
+
+2024-08-01 23:22:08,409 - DeviceLog - INFO - Alexa enabled successfully.
+2024-08-01 23:22:08,717 - DeviceLog - INFO - Reboot command output: 
+2024-08-01 23:22:08,718 - DeviceLog - INFO - Device reboot command issued successfully.
+2024-08-01 23:22:08,718 - DeviceLog - INFO - Waiting for device to reboot...
+2024-08-01 23:24:24,399 - DeviceLog - INFO - Calling enable_alexa
+2024-08-01 23:24:24,399 - DeviceLog - INFO - Executing command to enable Alexa: adb shell vdcm set com.amazon.devconf/system/oobe/oobe-complete 'true'
+2024-08-01 23:24:24,450 - DeviceLog - INFO - Enable Alexa command output: 'com.amazon.devconf/system/oobe/oobe-complete' successfully set to 'true'
+
+2024-08-01 23:24:24,450 - DeviceLog - INFO - Alexa enabled successfully.
+2024-08-01 23:24:24,450 - DeviceLog - INFO - Executing reboot command: adb reboot
+2024-08-01 23:24:24,471 - DeviceLog - INFO - Reboot command output: 
+2024-08-01 23:24:24,472 - DeviceLog - INFO - Device reboot command issued successfully.
+2024-08-01 23:24:24,472 - DeviceLog - INFO - Waiting for device to reboot...
+2024-08-01 23:24:54,500 - DeviceLog - INFO - enable_alexa returned True

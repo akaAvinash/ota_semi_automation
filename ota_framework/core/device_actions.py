@@ -171,29 +171,52 @@ class DeviceActions:
     @logger.log_decorator(level='info')
     def enable_alexa(self):
         """
-        Enable Alexa on the device using the command from SystemCommands.
+        Enable Alexa on the device using the command from SystemCommands,
+        and reboot the device using the command from DeviceCommands.
 
         Returns:
         - bool: True if Alexa was successfully enabled, False otherwise.
 
         Raises:
-        - Exception: If there is an error executing the command or parsing the output.
+        - Exception: If there is an error executing the command, parsing the output, or rebooting the device.
         """
         try:
+            # Enable Alexa
             command = SystemCommands.ENABLE_ALEXA
+            logger.info(f"Executing command to enable Alexa: {command}")
             result = self.shell.execute_command(command)
+            
             if result['success']:
                 logger.info(f"Enable Alexa command output: {result['output']}")
                 # Check if the output indicates success
                 if "successfully set to 'true'" in result['output']:
-                    return True
+                    logger.info("Alexa enabled successfully.")
                 else:
                     raise Exception("Failed to enable Alexa.")
             else:
                 raise Exception(f"Command execution failed: {result['error']}")
+            
+            # Reboot the device
+            reboot_command = DeviceCommands.REBOOT
+            logger.info(f"Executing reboot command: {reboot_command}")
+            reboot_result = self.shell.execute_command(reboot_command)
+            
+            if reboot_result['success']:
+                logger.info(f"Reboot command output: {reboot_result['output']}")
+                logger.info("Device reboot command issued successfully.")
+                
+                # Wait for a few minutes to allow the device to reboot
+                logger.info("Waiting for device to reboot...")
+                time.sleep(30)
+            else:
+                raise Exception(f"Reboot command execution failed: {reboot_result['error']}")
+            
+            return True
+        
         except Exception as e:
-            logger.error(f"Error enabling Alexa: {e}")
-            raise
+            logger.error(f"Error enabling Alexa or rebooting device: {e}")
+            return False
+
         
     @logger.log_decorator(level='info')
     def skip_oobe(self):
@@ -501,7 +524,7 @@ class DeviceActions:
 def main():
     logs_dir = '/home/ANT.AMAZON.COM/avinaks/Downloads/Playground/ota_framework/logs/'
     device = DeviceActions(logs_dir)
-    output = device.check_if_app_is_present()
+    device.enable_alexa()
 
 if __name__ == "__main__":
     main()

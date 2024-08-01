@@ -34,7 +34,7 @@ class SystemCommands:
 class DeviceCommands:
     FLAG_440 = "adb shell idme dev_flags 0x440"
     FLAG_0 = "adb shell idme dev_flags 0"
-    REBOOT = "adb shell reboot"
+    REBOOT = "adb reboot"
     FLAG_CHECK = "adb shell idme print | grep flags"
     BOOT_CONTROL = "adb shell boot_control_utility"
     SCREENSHOT_COMMAND = 'adb shell screenshooter -r /tmp/filename.png'

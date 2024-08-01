@@ -39,12 +39,12 @@ class DeviceSetup:
         """
         # Verify the OTA update using the initial software version
         self.verify_ota_update(self.device.get_software_version, self.initial_version)        
-        self.precon.alexa()  # Enable Alexa
         self.precon.flag_440()  # Set device flag to 440
         self.precon.screen_shooter()  # Take OOBE screenshot
         self.precon.check_app() # To check if apps are present 
         self.precon.skip_oobe()  # Skip OOBE for MM devices
         self.precon.boot_utility()  # Perform boot utility check
+        self.precon.alexa()  # Enable Alexa
 
     def get_initial_software_version(self):
         """
