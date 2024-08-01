@@ -10,11 +10,17 @@ logger = CustomLogger('OTALogger')
 
 class OTA:
     def __init__(self, delay=5, test_case_name=None):
+        """
+        Initialize the OTA class with a delay and test case name.
+        
+        :param delay: Delay between OTA commands in seconds.
+        :param test_case_name: Name of the test case for logging purposes.
+        """
         self.delay = delay
         self.test_case_name = test_case_name if test_case_name is not None else 'default'
         self.log_folder = 'logs'
         self.log_file = os.path.join(self.log_folder, f'{self.test_case_name}_ota_logs.txt')
-        self.log_command = OTACommands.OTA_LOG_COMMAND  
+        self.log_command = OTACommands.OTA_LOG_COMMAND
         
         # Retrieve DSN from environment variables
         self.dsn = os.getenv('DEVICE_SERIAL_NUMBER')
@@ -28,19 +34,17 @@ class OTA:
             logger.error("No DEVICE_SERIAL_NUMBER found in environment variables.")
             raise EnvironmentError("DEVICE_SERIAL_NUMBER environment variable not set.")
 
-
     def start_log_collection(self):
         """
         Start collecting logs in a separate thread and write to a log file.
+        :return: The log collection thread.
         """
         logger.info("Starting log collection.")
         
         def log_collection():
-            # Execute the log collection command and redirect output to the log file
             process = Shell.execute_command(self.log_command, redirect_output=True, output_file=self.log_file)
             process.wait()
 
-        # Start the log collection thread
         log_thread = threading.Thread(target=log_collection)
         log_thread.daemon = True
         log_thread.start()
@@ -49,12 +53,10 @@ class OTA:
     def start_ota_process(self):
         """
         Start the OTA process by executing defined commands with a delay.
-        :return: A dictionary with 'success', 'output', and 'error' keys.
+        :return: A list of dictionaries with 'success', 'output', and 'error' keys.
         """
-        # Start log collection in parallel
         log_thread = self.start_log_collection()
-        
-        # Ensure DSN is used in commands if needed
+
         commands = [
             OTACommands.FORCE_SYNC_OTA.format(dsn=self.dsn),
             OTACommands.FORCE_UPDATE_OTA.format(dsn=self.dsn),
@@ -80,12 +82,12 @@ class OTA:
             
             time.sleep(self.delay)
         
-        # Re-execute the FORCE_UPDATE_OTA command after all other commands are executed
+        # Re-execute the FORCE_UPDATE_OTA command
         force_update_result = Shell.execute_command(OTACommands.FORCE_UPDATE_OTA.format(dsn=self.dsn))
         results.append(force_update_result)
         
         if force_update_result['success']:
-            logger.info(f"Re-execution of FORCE_UPDATE_OTA succeeded.")
+            logger.info("Re-execution of FORCE_UPDATE_OTA succeeded.")
         else:
             logger.error(f"Re-execution of FORCE_UPDATE_OTA failed - Error: {force_update_result.get('error', 'No error message provided')}")
         
@@ -96,10 +98,33 @@ class OTA:
         # Wait for the log collection thread to finish
         log_thread.join(timeout=5)
         return results
+    
+    def force_sync(self):
+        """
+        Execute the force sync OTA command twice with a 10-second gap.
+        :return: A list of dictionaries with 'success', 'output', and 'error' keys.
+        """
+        commands = [
+            OTACommands.FORCE_SYNC_OTA.format(dsn=self.dsn),
+            OTACommands.FORCE_SYNC_OTA.format(dsn=self.dsn)
+        ]
+        
+        results = []
 
-# Example usage
-if __name__ == "__main__":
-    ota = OTA(delay=5, test_case_name='test_n_1_to_n')
-    ota_results = ota.start_ota_process()
-    for result in ota_results:
-        print(result)
+        for command in commands:
+            logger.info(f"Executing OTA force sync command: {command}")
+            result = Shell.execute_command(command)
+            
+            if result['success']:
+                logger.info(f"Force sync command succeeded: {command}")
+            else:
+                logger.error(f"Force sync command failed: {command} - Error: {result.get('error', 'No error message provided')}")
+            
+            results.append(result)
+            
+            if not result['success']:
+                break
+            
+            time.sleep(10)  # 10-second gap between commands
+
+        return results

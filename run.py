@@ -12,10 +12,12 @@ def run_tests(test_case_name):
     report_filename = f"results/{test_case_name}_report_{timestamp}.html"
     
     # Run pytest and generate the report
-    result = subprocess.run(
-        ["pytest", f"--html={report_filename}", "--self-contained-html"],
-        check=True
-    )
+    result = subprocess.run([
+        'pytest',
+        f'--html={report_filename}',
+        '--self-contained-html',
+        f'ota_framework/test_cases/{test_case_name}.py'
+    ], check=True)
     
     if result.returncode != 0:
         raise Exception("Tests failed")
@@ -24,7 +26,7 @@ def run_tests(test_case_name):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python script_name.py <test_case_name>")
+        print("Usage: python3 script_name.py <test_case_name>")
         sys.exit(1)
     
     test_case_name = sys.argv[1]

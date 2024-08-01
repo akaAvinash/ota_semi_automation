@@ -2,6 +2,7 @@ import time
 import os
 import re
 import configparser
+import logging
 from ota_framework.core.custom_logger import CustomLogger
 from ota_framework.core.flags import Flags
 from ota_framework.config.constants import SystemCommands, DeviceCommands, OOBECommands, Profiles, AppCommands
@@ -20,6 +21,12 @@ class DeviceActions:
         if not os.path.exists(self.logs_dir):
             os.makedirs(self.logs_dir)
         self.flag = Flags()
+        self.log = logging.getLogger(__name__)
+        self.log.setLevel(logging.INFO)
+        handler = logging.StreamHandler()  # or logging.FileHandler for file logging
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.log.addHandler(handler)
 
     @logger.log_decorator(level='info')
     def reboot_device(self):
@@ -252,46 +259,68 @@ class DeviceActions:
         return STATUS_OF_SLOT_a, STATUS_OF_SLOT_b
     
     @logger.log_decorator(level='info')
-    def push_and_install_app(self, app_name):
+    def execute_boot_control_command(self):
         """
-        Push and install an app on the device.
-
-        Args:
-        - app_name (str): The name of the app as specified in the config.ini file.
+        Execute the boot control command from DeviceCommands and log the output.
+        
+        Returns:
+        - bool: True if the command was executed successfully, False otherwise.
         """
         try:
-            app_path = self.config.get('apps', app_name)
-            if not app_path or not os.path.exists(app_path):
-                logger.error(f"App path for {app_name} is invalid or does not exist.")
-                return
-
-            # Push the app to the device
-            push_command = f"adb push {app_path} /data/{os.path.basename(app_path)}"
-            result = self.shell.execute_command(push_command)
-            if not result['success']:
-                logger.error(f"Failed to push {app_name} to device: {result['error']}")
-                return
-
-            # Install the app on the device
-            install_command = f"adb shell vpm install /data/{os.path.basename(app_path)}"
-            result = self.shell.execute_command(install_command)
+            command = DeviceCommands.BOOT_CONTROL
+            result = self.shell.execute_command(command)
             if result['success']:
-                logger.info(f"App {app_name} installed successfully.")
+                logger.info(f"Boot control command executed successfully. Output: {result['output']}")
+                return True
             else:
-                logger.error(f"Failed to install {app_name} on device: {result['error']}")
-                return
-
-            # Execute the LIST_APPS_COMMAND to verify installation
-            list_apps_command = AppCommands.LIST_APPS_COMMAND
-            list_result = self.shell.execute_command(list_apps_command)
-            if list_result['success']:
-                logger.info(f"Installed apps: {list_result['output']}")
-            else:
-                logger.error(f"Failed to list installed apps: {list_result['error']}")
-
+                logger.error(f"Failed to execute boot control command. Error: {result['error']}")
+                return False
         except Exception as e:
-            logger.error(f"Error pushing or installing app {app_name}: {e}")
-            raise
+            logger.error(f"Error executing boot control command: {e}")
+            return False
+    
+    def push_and_install_app(self, app_names):
+        """
+        Push and install apps on the device.
+
+        Args:
+        - app_names (list): List of app names as specified in the config.ini file.
+        """
+        for app_name in app_names:
+            try:
+                app_path = self.config.get('apps', app_name)
+                if not app_path or not os.path.exists(app_path):
+                    logger.error(f"App path for {app_name} is invalid or does not exist.")
+                    continue
+
+                # Push the app to the device
+                push_command = f"adb push {app_path} /data/{os.path.basename(app_path)}"
+                result = self.shell.execute_command(push_command)
+                if not result['success']:
+                    logger.error(f"Failed to push {app_name} to device: {result['error']}")
+                    continue
+
+                # Install the app on the device
+                install_command = f"adb shell vpm install /data/{os.path.basename(app_path)}"
+                result = self.shell.execute_command(install_command)
+                if result['success']:
+                    logger.info(f"App {app_name} installed successfully.")
+                else:
+                    logger.error(f"Failed to install {app_name} on device: {result['error']}")
+                    continue
+
+                # Execute the LIST_APPS_COMMAND to verify installation
+                list_apps_command = AppCommands.LIST_APPS_COMMAND
+                list_result = self.shell.execute_command(list_apps_command)
+                if list_result['success']:
+                    logger.info(f"Installed apps: {list_result['output']}")
+                else:
+                    logger.error(f"Failed to list installed apps: {list_result['error']}")
+
+            except Exception as e:
+                logger.error(f"Error pushing or installing app {app_name}: {e}")
+                raise
+
 
         
     @logger.log_decorator(level='info')
@@ -385,74 +414,94 @@ class DeviceActions:
         Push the debug files and service config file, to enable app installation.
         """
         try:
-            
             # Define the full paths for the files to push
             debug_folder_path = os.path.join(os.path.dirname(__file__), '../config/debug/')
             service_config_path = os.path.join(os.path.dirname(__file__), '../config/service-configuration.conf')
-            
+
             # Define the ADB commands to push files
-            debug_command = f"adb push {debug_folder_path} /etc/pkgmgrd/certs/"
-            service_config_command = f"adb push {service_config_path} /etc/pkgmgrd/"
+            commands = [
+                f"adb push {debug_folder_path} /etc/pkgmgrd/certs/",
+                f"adb push {service_config_path} /etc/pkgmgrd/",
+                f"adb shell reboot"
+            ]
 
-            # Execute the command to push the debug folder
-            debug_result = self.shell.execute_command(debug_command)
-            if debug_result['success']:
-                logger.info("Successfully pushed debug files.")
-            else:
-                logger.error(f"Failed to push debug files: {debug_result['error']}")
-                raise Exception("Error occurred while pushing debug files.")
-
-            # Execute the command to push the service configuration file
-            service_config_result = self.shell.execute_command(service_config_command)
-            if service_config_result['success']:
-                logger.info("Successfully pushed service configuration file.")
-            else:
-                logger.error(f"Failed to push service configuration file: {service_config_result['error']}")
-                raise Exception("Error occurred while pushing service configuration file.")
-
+            for command in commands:
+                result = self.shell.execute_command(command)
+                if result['success']:
+                    logger.info(f"Successfully executed command: {command}")
+                else:
+                    logger.error(f"Failed to execute command: {command}. Error: {result['error']}")
+                    raise Exception(f"Error occurred while executing command: {command}")
+        
         except Exception as e:
             logger.error(f"Error pushing debug files and service config: {e}")
             raise
+    
+    @logger.log_decorator(level='info')
+    def check_if_app_is_present(self):
+        """
+        Check if the required apps are present on the device.
+        Based on the profile name, execute a command if the profile is TV.
+        If the profile is Multimodal, skip the check; if it is TV profile, execute the command.
+        """
+        # Determine the device profile
+        profile = self.get_device_profile()
+        
+        # Check profile type
+        if profile == Profiles.TV:
+            self.log.info("Device profile is TV. Proceeding with app presence check.")
+            return self.verify_apps_presence()
+        
+        if profile in Profiles.MULTIMODAL:
+            self.log.info("Device profile is MULTIMODAL. Skipping app presence check.")
+            return [0, "MULTIMODAL profile"]
+
+        # self.log.error(f"Unknown or unsupported device profile: {profile}")
+        return [-1, f"Unknown profile: {profile}"]
+
+    def verify_apps_presence(self):
+        """
+        Verify the presence of required apps on the device.
+        Returns:
+        - List: [status_code, message]
+        """
+        LIST_APPS_COMMAND = "adb shell vpm list apps | grep system"
+
+        try:
+            self.log.info(f"Executing command to check app presence: {LIST_APPS_COMMAND}")
+            result = Shell.execute_command(LIST_APPS_COMMAND)
+
+            if not result['success']:
+                self.log.error(f"Failed to execute command: {result.get('error', 'No error message provided')}")
+                return [-1, "Command execution failed"]
+
+            output = result.get('output', '')
+            self.log.info(f"Command output: {output}")
+
+            required_apps = [
+                "com.amazon.systemtest.launcher.main",
+                "com.amazon.systemtest.settings.main"
+            ]
+
+            detected_apps = [app for app in required_apps if app in output]
+
+            if detected_apps:
+                self.log.info(f"Detected apps: {', '.join(detected_apps)}")
+                self.log.info("Required app(s) are present on the device.")
+                return [0, "App(s) present"]
+            else:
+                self.log.error("Required app(s) are not present on the device.")
+                return [-1, "App(s) not present"]
+
+        except Exception as e:
+            self.log.error(f"An error occurred while checking app presence: {str(e)}")
+            return [-1, f"Error: {str(e)}"]
 
 
+def main():
+    logs_dir = '/home/ANT.AMAZON.COM/avinaks/Downloads/Playground/ota_framework/logs/'
+    device = DeviceActions(logs_dir)
+    output = device.check_if_app_is_present()
 
 if __name__ == "__main__":
-    logs_dir = '/home/ANT.AMAZON.COM/avinaks/Downloads/Playground/ota_framework/logs/'
-    device_actions = DeviceActions(logs_dir)
-    try:
-#         device_actions.reboot_device()
-
-        # # Example to take a screenshot
-        # screenshot_filename = "filename.png"
-        # screenshot_path = device_actions.take_screenshot(screenshot_filename)
-        # print(f"Screenshot saved to: {screenshot_path}")
-
-#         # Example to check device online status
-#         is_online = device_actions.check_device_online()
-#         print(f"Device online: {is_online}")
-
-#         # Example to get software version
-        # software_version = device_actions.get_software_version()
-        # print(f"Software version: {software_version}")
-        
-        # get_soft = device_actions.get_software_version()
-        # print(f"Soft version: {get_soft}")
-
-#         # Example to enable Alexa
-#         device_actions.enable_alexa()
-
-#         # Example to complete OOBE
-#         device_actions.complete_oobe()
-
-#         # Example to push and install an app
-        device_actions.push_and_install_app('settings_app')
-#         device_actions.push_and_install_app('carousel_app')
-#         device_actions.get_device_name()
-        #   device_actions.get_device_name()
-        #   device_actions.get_device_profile()
-        #   device_actions.check_and_complete_oobe_based_on_profile()
-        # device_actions.verify_and_get_boot_utility_slots()
-        # device_actions.push_debug_service_file()
-          
-    except Exception as e:
-        print(f"Error: {e}")
+    main()

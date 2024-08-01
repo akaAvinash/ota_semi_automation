@@ -19,4 +19,4 @@ class TestConfig:
         self.setup = DeviceSetup(self.pre, logs_dir=self.logs_dir) 
 
     def get_components(self):
-        return self.flash, self.ota, self.setup, self.device
+        return self.flash, self.ota, self.setup, self.device, self.pre

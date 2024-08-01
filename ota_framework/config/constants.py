@@ -1,9 +1,9 @@
 class WiFiConstants:
-    SSID = "Guest"
-    PASSWORD = "BrokenWires@@2019"
+    # SSID = "Guest"
+    # PASSWORD = "BrokenWires@@2019"
     
-    # SSID = "ACT103699381413"
-    # PASSWORD = "23081207"
+    SSID = "ACT103699381413"
+    PASSWORD = "23081207"
 
 class RegistrationConstants:
     USERNAME = "acs-qa+test2@amazon.com"

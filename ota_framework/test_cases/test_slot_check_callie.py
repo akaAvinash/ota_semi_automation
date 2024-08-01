@@ -4,10 +4,12 @@ import pytest
 from ota_framework.core.ota import OTA
 from ota_framework.core.custom_logger import CustomLogger
 from ota_framework.core.test_config import TestConfig
+from ota_framework.core.device_actions import Profiles
 
 # Initialize the logger
 logger = CustomLogger('n_1_to_n_ota', log_file_name='test_n_1_to_n.log')
 
+@pytest.mark.skipif(TestConfig().device.get_device_profile() != Profiles.TV, reason='Test only applicable for TV profile')
 def test_n_1_to_n_ota():
     try:
         logger.info('Starting n_1_to_n_ota test')
@@ -15,7 +17,6 @@ def test_n_1_to_n_ota():
         # Initialize components using TestConfig
         config = TestConfig()
         flash, ota, setup, device, pre = config.get_components()
-
         
         build_name = "n_1_to_n"
         
@@ -28,8 +29,9 @@ def test_n_1_to_n_ota():
         logger.info("Waiting for device to be ready.")
         time.sleep(30)
         
-        # Perform device setup prior to OTA
+        # Perform device setup prior to OTA & slot check before OTA
         setup.perform_setup()
+        pre.boot_cmd()
         
         # Start OTA process
         logger.info("Starting OTA process.")

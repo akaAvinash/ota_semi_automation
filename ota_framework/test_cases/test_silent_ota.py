@@ -6,21 +6,20 @@ from ota_framework.core.custom_logger import CustomLogger
 from ota_framework.core.test_config import TestConfig
 
 # Initialize the logger
-logger = CustomLogger('n_1_to_n_ota', log_file_name='test_n_1_to_n.log')
+logger = CustomLogger('silent_ota', log_file_name='test_silent_ota.log')
 
-def test_n_1_to_n_ota():
+def test_silent_ota():
     try:
-        logger.info('Starting n_1_to_n_ota test')
+        logger.info('Starting silent_ota test')
         
         # Initialize components using TestConfig
         config = TestConfig()
         flash, ota, setup, device, pre = config.get_components()
-
         
-        build_name = "n_1_to_n"
+        build_name = "prod_to_n"
         
         # Create OTA instance with test_case_name
-        ota = OTA(delay=5, test_case_name='test_n_1_to_n')
+        ota = OTA(delay=5, test_case_name='test_silent_ota')
         
         # Flash build
         logger.info("Starting build flash.")
@@ -33,14 +32,14 @@ def test_n_1_to_n_ota():
         
         # Start OTA process
         logger.info("Starting OTA process.")
-        ota.start_ota_process()
+        ota.force_sync()
         logger.info("Waiting for OTA to download & install")
         
         # Perform post OTA actions
         logger.info("Performing post OTA actions.")
         setup.post_ota_actions()
         
-        logger.info('n_1_to_n_ota test completed successfully')
+        logger.info('silent_ota test completed successfully')
 
     except Exception as e:
         logger.error(f"Test failed with exception: {e}")

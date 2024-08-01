@@ -62,11 +62,14 @@ class Precon:
         logger.info("Flag set to 440")
 
     def push_app(self):
-        self.device.push_and_install_app(app_name='settings_app')
+        self.device.push_and_install_app(app_names= ['settings_app', 'launcher_app'])
         time.sleep(3)
         
     def boot_utility(self):
         self.device.verify_and_get_boot_utility_slots()
+        
+    def boot_cmd(self):
+        self.device.execute_boot_control_command()
         
     def screen_shooter(self):
         self.device.take_screenshot(filename="filename.png")
@@ -79,14 +82,19 @@ class Precon:
         
     def config_setup_for_mm_device(self):
         self.device.push_debug_service_file()
+        time.sleep(60)
+        
+    def check_app(self):
+        self.device.check_if_app_is_present()
         
 def main():
-    pre = Precon()
+    pre = Precon(logs_dir="/home/ANT.AMAZON.COM/avinaks/Downloads/Playground/ota_framework/logs/")
     try:
         logger.info("Starting precondition setup.")
         # pre.wifi_setup()
-        pre.reg_device()
-        logger.info("Precondition setup completed successfully.")
+        # pre.reg_device()
+        pre.check_app()
+        logger.info("App check completed")
     except Exception as e:
         logger.error(f"Error occurred during precondition setup: {e}")
 
