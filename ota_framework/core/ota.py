@@ -101,9 +101,23 @@ class OTA:
     
     def force_sync(self):
         """
-        Execute the force sync OTA command twice with a 10-second gap.
+        Execute the force sync OTA command twice with a 10-second gap,
+        start log collection during the process, and wait for 15 minutes
+        before completing the log collection.
         :return: A list of dictionaries with 'success', 'output', and 'error' keys.
         """
+        # Start log collection
+        logger.info("Starting log collection for force sync.")
+        
+        def log_collection():
+            process = Shell.execute_command(self.log_command, redirect_output=True, output_file=self.log_file)
+            process.wait()
+
+        log_thread = threading.Thread(target=log_collection)
+        log_thread.daemon = True
+        log_thread.start()
+
+        # Define force sync commands
         commands = [
             OTACommands.FORCE_SYNC_OTA.format(dsn=self.dsn),
             OTACommands.FORCE_SYNC_OTA.format(dsn=self.dsn)
@@ -125,6 +139,14 @@ class OTA:
             if not result['success']:
                 break
             
-            time.sleep(10)  # 10-second gap between commands
+            time.sleep(10)  # Wait for 10 seconds between commands
+
+        # Wait for 15 minutes to ensure OTA process is complete
+        logger.info("Waiting for 15 minutes for OTA process to complete and install.")
+        time.sleep(900)
+
+        # Wait for the log collection thread to finish
+        logger.info("Waiting for log collection to finish.")
+        log_thread.join(timeout=5)
 
         return results

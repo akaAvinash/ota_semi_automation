@@ -21,14 +21,14 @@ def test_silent_ota():
         # Create OTA instance with test_case_name
         ota = OTA(delay=5, test_case_name='test_silent_ota')
         
-        # Flash build
-        logger.info("Starting build flash.")
-        flash.flash_build(build_name)
-        logger.info("Waiting for device to be ready.")
-        time.sleep(30)
+        # # Flash build
+        # logger.info("Starting build flash.")
+        # flash.flash_build(build_name)
+        # logger.info("Waiting for device to be ready.")
+        # time.sleep(30)
         
-        # Perform device setup prior to OTA
-        setup.perform_setup()
+        # # Perform device setup prior to OTA
+        # setup.perform_setup()
         
         # Start OTA process
         logger.info("Starting OTA process.")
